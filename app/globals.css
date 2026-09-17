@@ -304,6 +304,7 @@ p {
   text-align: left;
 }
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -314,7 +315,7 @@ p {
   color: var(--ink);
   transition: transform 0.12s ease;
 }
-.card:active {
+.card:active:not(:has(.card-edit:active)) {
   transform: scale(0.98);
 }
 .preview {
@@ -358,8 +359,22 @@ p {
   letter-spacing: -0.224px;
   color: var(--ink-muted-48);
 }
-.card .text-link {
+.card-link {
+  color: inherit;
+  display: block;
+}
+.card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-lg);
+}
+.card-edit {
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
   margin-top: 12px;
+  padding: 4px 0;
   font-size: 14px;
   letter-spacing: -0.224px;
 }
@@ -467,6 +482,11 @@ p {
   align-items: center;
   padding-left: 20px;
   overflow: hidden;
+}
+.input-group.is-readonly {
+  background: var(--parchment);
+  border-color: transparent;
+  color: var(--ink-muted-48);
 }
 .input-group .prefix {
   color: var(--ink-muted-48);
@@ -653,7 +673,12 @@ p {
   .sub-nav-title {
     font-size: 19px;
   }
-  .input-group .prefix {
+  .input-group.is-readonly {
+  background: var(--parchment);
+  border-color: transparent;
+  color: var(--ink-muted-48);
+}
+.input-group .prefix {
     font-size: 14px;
   }
 }

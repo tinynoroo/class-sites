@@ -72,26 +72,29 @@ export default async function Home() {
           ) : (
             <ul className="grid">
               {sites.map((site) => (
-                <li key={site.slug}>
-                  <a href={`/sites/${site.slug}/`} target="_blank" rel="noopener" className="card">
-                    <div className="preview">
-                      <iframe
-                        src={`/sites/${site.slug}/`}
-                        loading="lazy"
-                        tabIndex={-1}
-                        aria-hidden
-                        sandbox="allow-scripts"
-                        title={site.title}
-                      />
-                    </div>
-                    <div className="card-body">
-                      <span className="card-title">{site.title}</span>
-                      <span className="card-meta">
-                        {site.author} · {formatDate(site.updatedAt)}
-                      </span>
-                      <span className="text-link">사이트 보기</span>
-                    </div>
-                  </a>
+                <li key={site.slug} className="card">
+                  <div className="preview">
+                    <iframe
+                      src={`/sites/${site.slug}/`}
+                      loading="lazy"
+                      tabIndex={-1}
+                      aria-hidden
+                      sandbox="allow-scripts"
+                      title={site.title}
+                    />
+                  </div>
+                  <div className="card-body">
+                    {/* 카드 전체가 눌리도록 링크 영역을 카드 크기로 늘린다 (.card-link::after) */}
+                    <a href={`/sites/${site.slug}/`} target="_blank" rel="noopener" className="card-title card-link">
+                      {site.title}
+                    </a>
+                    <span className="card-meta">
+                      {site.author} · {formatDate(site.updatedAt)}
+                    </span>
+                    <Link href={`/edit/${site.slug}`} className="text-link card-edit">
+                      수정하기
+                    </Link>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -115,7 +118,7 @@ export default async function Home() {
             <li>
               <div className="step-num">2</div>
               <h3 className="step-title">폴더째 올리기</h3>
-              <p className="step-desc">이름, 주소, 비밀번호를 적고 폴더를 선택하면 끝. 같은 비밀번호로 다시 올리면 수정돼요.</p>
+              <p className="step-desc">이름, 주소, 비밀번호를 적고 폴더를 선택하면 끝. 고칠 땐 카드의 '수정하기'를 누르세요.</p>
             </li>
             <li>
               <div className="step-num">3</div>

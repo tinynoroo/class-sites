@@ -2,30 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import FolderPicker from "@/app/components/FolderPicker";
+import SuccessPanel from "@/app/components/SuccessPanel";
+import { appendFiles, send } from "@/lib/upload-client";
 
 type Status =
   | { type: "idle" }
   | { type: "busy"; progress: number }
   | { type: "error"; text: string }
   | { type: "done"; url: string };
-
-function formatSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))}KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
-}
-
-// fetch는 업로드 진행률을 알 수 없어 XHR을 쓴다
-function send(data: FormData, onProgress: (p: number) => void) {
-  return new Promise<{ ok: boolean; json: { error?: string; url?: string } }>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/upload");
-    xhr.responseType = "json";
-    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total);
-    xhr.onload = () => resolve({ ok: xhr.status < 300, json: xhr.response ?? {} });
-    xhr.onerror = () => reject(new Error("네트워크 오류가 발생했습니다."));
-    xhr.send(data);
-  });
-}
 
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -38,15 +23,11 @@ export default function UploadPage() {
       return;
     }
     const data = new FormData(e.currentTarget);
-    data.delete("folder");
-    for (const file of files) {
-      data.append("files", file);
-      data.append("paths", file.webkitRelativePath || file.name);
-    }
+    appendFiles(data, files);
 
     setStatus({ type: "busy", progress: 0 });
     try {
-      const { ok, json } = await send(data, (progress) => setStatus({ type: "busy", progress }));
+      const { ok, json } = await send("/api/upload", data, (progress) => setStatus({ type: "busy", progress }));
       if (!ok || !json.url) throw new Error(json.error ?? "업로드에 실패했습니다.");
       setStatus({ type: "done", url: json.url });
       window.scrollTo({ top: 0 });
@@ -55,8 +36,6 @@ export default function UploadPage() {
     }
   }
 
-  const folderName = files[0]?.webkitRelativePath.split("/")[0];
-  const totalSize = files.reduce((sum, f) => sum + f.size, 0);
   const busy = status.type === "busy";
 
   return (
@@ -71,27 +50,7 @@ export default function UploadPage() {
       </div>
 
       {status.type === "done" ? (
-        <section className="tile tile-light hero">
-          <div className="success">
-            <div className="success-check" aria-hidden>
-              ✓
-            </div>
-            <h1 className="hero-display">게시되었습니다.</h1>
-            <p className="lead">이제 누구나 내 사이트를 볼 수 있어요.</p>
-            <p className="success-url">
-              {typeof window !== "undefined" ? window.location.host : ""}
-              {status.url}
-            </p>
-            <div className="cta-row">
-              <a href={status.url} target="_blank" rel="noopener" className="btn btn-primary">
-                내 사이트 열기
-              </a>
-              <Link href="/#gallery" className="btn btn-secondary">
-                갤러리 보기
-              </Link>
-            </div>
-          </div>
-        </section>
+        <SuccessPanel title="게시되었습니다." lead="이제 누구나 내 사이트를 볼 수 있어요." url={status.url} />
       ) : (
         <>
           <section className="tile tile-light hero">
@@ -137,7 +96,7 @@ export default function UploadPage() {
                     onChange={(e) => (e.target.value = e.target.value.toLowerCase())}
                   />
                 </div>
-                <p className="field-hint">영문 소문자, 숫자, 하이픈(-)으로 2~40자.</p>
+                <p className="field-hint">영문 소문자, 숫자, 하이픈(-)으로 2~40자. 올린 뒤에는 바꿀 수 없어요.</p>
               </div>
 
               <div className="field">
@@ -145,35 +104,12 @@ export default function UploadPage() {
                   비밀번호
                 </label>
                 <input id="password" name="password" type="password" className="input" required minLength={4} />
-                <p className="field-hint">나중에 같은 주소로 다시 올려 수정할 때 필요해요.</p>
+                <p className="field-hint">나중에 제목이나 파일을 수정할 때 필요해요.</p>
               </div>
 
               <div className="field">
                 <span className="field-label">폴더</span>
-                <div className="folder-picker">
-                  <div className="folder-info">
-                    {folderName ? (
-                      <>
-                        <div className="folder-name">{folderName}</div>
-                        <div className="folder-sub">
-                          파일 {files.length}개 · {formatSize(totalSize)}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="folder-sub">선택된 폴더가 없습니다.</div>
-                    )}
-                  </div>
-                  <label className="btn btn-pearl">
-                    {folderName ? "다시 선택" : "폴더 선택"}
-                    <input
-                      name="folder"
-                      type="file"
-                      multiple
-                      {...{ webkitdirectory: "" }}
-                      onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-                    />
-                  </label>
-                </div>
+                <FolderPicker files={files} onChange={setFiles} />
               </div>
 
               <div className="form-actions">
