@@ -1,0 +1,23 @@
+# deployctl 규칙: 127.0.0.1 바인딩(5-1), dbnet 참여(4-1).
+services:
+  app:
+    build: .
+    image: subsite:local
+    restart: unless-stopped
+    # 호스트 사용자로 돌려 업로드 파일이 root 소유가 되지 않게 한다.
+    user: "1000:1000"
+    environment:
+      MAX_UPLOAD_MB: "100"
+    ports:
+      - "127.0.0.1:9006:3000"
+    volumes:
+      # 업로드 파일이 쌓이는 호스트 경로. 운영에서는 체크아웃 밖의 절대경로로 바꾼다.
+      - ./storage:/app/storage
+    networks: [default, dbnet]
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+networks:
+  dbnet:
+    external: true

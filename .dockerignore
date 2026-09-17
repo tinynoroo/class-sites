@@ -1,0 +1,6 @@
+node_modules
+.next
+.git
+storage
+Dockerfile
+compose.yaml
