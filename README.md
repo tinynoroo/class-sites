@@ -1,5 +1,7 @@
 # class-sites
 
+**English** | [한국어](README.ko.md)
+
 A gallery where students upload the website they built as a folder, and it goes live right away.
 
 Built for a web-making class: each student picks an address, drops in their folder, and gets a working URL to share. Everyone's site shows up on one gallery page. The interface is in Korean.
